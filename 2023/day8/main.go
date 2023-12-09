@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -24,38 +25,51 @@ func main() {
 
 	instructions := []rune(directions[0])
 
+	var startNodes []string
+	var goalNodes []string
 	nodes := make(map[string]Node)
 	for _, n := range directions[1:] {
 		key := strings.Split(n, " ")[0]
 		leftRight := getLeftRight.FindAllString(n, -1)
 		node := Node{Left: leftRight[1], Right: leftRight[2]}
-		// TODO; part 2 with suffixes
-		// strings.HasSuffix()
+
+		if strings.HasSuffix(key, "A") {
+			startNodes = append(startNodes, key)
+		} else if strings.HasSuffix(key, "Z") {
+			goalNodes = append(goalNodes, key)
+		}
+
 		nodes[key] = node
 	}
-	fmt.Println(instructions)
+
+	// fmt.Println(instructions)
 	fmt.Println(nodes)
+	fmt.Println(startNodes)
+	fmt.Println(goalNodes)
 
-	var steps int
-	var current string
-	goal := "ZZZ"
-	step := "AAA"
+	var nodeSteps []int
+	var next string
 
-	for current != goal {
-		for _, direction := range instructions {
-			fmt.Println(direction)
+	for i, step := range startNodes {
+		var steps int
+		next = step
+		for !slices.Contains(goalNodes, startNodes[i]) {
+			for _, direction := range instructions {
+				steps++
+				next = nodes[next].Step(direction)
+				startNodes[i] = next
 
-			steps++
-			current = nodes[step].Step(direction)
-			step = current
-			fmt.Println(current)
-			if current == goal {
-				break
+				if slices.Contains(goalNodes, startNodes[i]) {
+					break
+				}
 			}
 		}
+		nodeSteps = append(nodeSteps, steps)
 	}
+	fmt.Println("Cycle for each node; ", nodeSteps)
 
-	fmt.Println("Number of steps taken: ", steps)
+	res := LCM(nodeSteps[0], nodeSteps[1], nodeSteps[2:]...)
+	fmt.Println("Number of steps taken: ", res)
 }
 
 func (n Node) Step(dir rune) string {
@@ -67,4 +81,25 @@ func (n Node) Step(dir rune) string {
 	}
 
 	return n.Right
+}
+
+// Greatest common denominator via Euclidean algorithm
+// Retrieved from https://siongui.github.io/2017/06/03/go-find-lcm-by-gcd
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+func LCM(a, b int, ints ...int) int {
+	res := a * b / GCD(a, b)
+
+	for i := 0; i < len(ints); i++ {
+		res = LCM(res, ints[i])
+	}
+
+	return res
 }
