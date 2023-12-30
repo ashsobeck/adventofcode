@@ -69,19 +69,26 @@ func (p Pattern) CheckVertical() int {
 			left = i - 2
 			right = i + 1
 			pointOfRef = i
-			break
+			if p.CheckVerticalReflection(left, right) {
+				break
+			} else {
+				pointOfRef = 0
+			}
 		}
 		prev = col
 	}
+
+	return pointOfRef
+}
+func (p Pattern) CheckVerticalReflection(left, right int) bool {
 	for left != -1 && right != len(p.Columns) {
 		if p.Columns[left] != p.Columns[right] {
-			fmt.Println("invalid vert")
-			return 0
+			return false
 		}
 		left--
 		right++
 	}
-	return pointOfRef
+	return true
 }
 
 func (p Pattern) CheckHorizontal() int {
@@ -100,18 +107,27 @@ func (p Pattern) CheckHorizontal() int {
 			left = i - 2
 			right = i + 1
 			pointOfRef = i
-			break
+
+			if p.CheckHorizontalReflection(left, right) {
+				break
+			} else {
+				pointOfRef = 0
+			}
 		}
 		prev = row
 	}
+	return pointOfRef
+}
+
+func (p Pattern) CheckHorizontalReflection(left, right int) bool {
 	for left != -1 && right != len(p.Rows) {
 		if p.Rows[left] != p.Rows[right] {
-			return 0
+			return false
 		}
 		left--
 		right++
 	}
-	return pointOfRef
+	return true
 }
 
 func (p *Pattern) GetCols() {
