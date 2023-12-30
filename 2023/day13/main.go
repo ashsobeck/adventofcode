@@ -12,38 +12,49 @@ type Pattern struct {
 }
 
 func main() {
-	file, _ := os.ReadFile("./day13_test.txt")
+	file, _ := os.ReadFile("./day13.txt")
 
 	split := strings.Split(string(file), "\n")
 
 	var patterns []Pattern
 	var p Pattern
 	for _, s := range split {
-		if s == "" {
+		if s == "" && len(p.Rows) > 0 {
 			patterns = append(patterns, p)
 			p = Pattern{}
+		} else if s != "" {
+			p.Rows = append(p.Rows, s)
 		}
-		p.Rows = append(p.Rows, s)
-	}
-	for _, p := range patterns {
-		p.GetCols()
 	}
 
-	for col := range patterns[0].Columns {
-		fmt.Println(patterns[0].Columns[col])
+	var res int
+	for _, p := range patterns {
+		p.GetCols()
+		res += p.FindReflection()
 	}
+
+	fmt.Println("Reflection result:", res)
 }
 
 func (p Pattern) FindReflection() int {
-	if pointOfRef := p.CheckHorizontal(); pointOfRef != -1 {
-		return 100 * pointOfRef
+	var res int
+	if pointOfRef := p.CheckHorizontal(); pointOfRef != 0 {
+		res = 100 * pointOfRef
+	} else {
+		res = p.CheckVertical()
 	}
+	if res == 0 {
+		fmt.Println("no reflection")
+		for _, rows := range p.Rows {
+			fmt.Println(rows)
+		}
+	}
+	return res
 
-	return p.CheckVertical()
 }
 
-func (p Pattern) CheckHorizontal() int {
-	// check horizontal
+func (p Pattern) CheckVertical() int {
+	// check vertical
 	var prev string
 	var left, right, pointOfRef int
 
@@ -55,16 +66,17 @@ func (p Pattern) CheckHorizontal() int {
 
 		// point of reflection
 		if prev == col {
-			left = i - 1
+			left = i - 2
 			right = i + 1
 			pointOfRef = i
 			break
 		}
 		prev = col
 	}
-	for left != -1 || right != len(p.Columns) {
+	for left != -1 && right != len(p.Columns) {
 		if p.Columns[left] != p.Columns[right] {
-			return -1
+			fmt.Println("invalid vert")
+			return 0
 		}
 		left--
 		right++
@@ -72,8 +84,8 @@ func (p Pattern) CheckHorizontal() int {
 	return pointOfRef
 }
 
-func (p Pattern) CheckVertical() int {
-	// check vertical
+func (p Pattern) CheckHorizontal() int {
+	// check horizontal
 	var prev string
 	var left, right, pointOfRef int
 
@@ -85,30 +97,29 @@ func (p Pattern) CheckVertical() int {
 
 		// point of reflection
 		if prev == row {
-			left = i - 1
+			left = i - 2
 			right = i + 1
 			pointOfRef = i
 			break
 		}
 		prev = row
 	}
-	for left != -1 || right != len(p.Rows) {
+	for left != -1 && right != len(p.Rows) {
 		if p.Rows[left] != p.Rows[right] {
-			return -1
+			return 0
 		}
 		left--
 		right++
 	}
 	return pointOfRef
-
 }
 
 func (p *Pattern) GetCols() {
 	for j := range p.Rows[0] {
-		var cols []string
+		var cols string
 		for i := range p.Rows {
-			cols = append(cols, string(p.Rows[i][j]))
+			cols += string(p.Rows[i][j])
 		}
-		p.Columns = append(p.Columns, cols...)
+		p.Columns = append(p.Columns, cols)
 	}
 }
